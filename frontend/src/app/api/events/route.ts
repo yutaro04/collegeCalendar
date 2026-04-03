@@ -72,6 +72,7 @@ function parseCsv(csv: string): CalendarEvent[] {
     displayDate: cols[10] ?? '',
     isAllDay: cols[11] === 'TRUE',
     color: cols[12] ?? '',
+    isRecurring: false,
   }));
 }
 

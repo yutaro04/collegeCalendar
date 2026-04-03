@@ -12,6 +12,7 @@ export interface CalendarEvent {
   displayDate: string; // M/d
   isAllDay: boolean;
   color: string;
+  isRecurring: boolean;
 }
 
 export interface EventsResponse {

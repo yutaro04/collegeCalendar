@@ -23,3 +23,28 @@ export function formatCountdown(diffMs: number): string {
   if (hours > 0) return `${hours}時間${mins}分後`;
   return `${mins}分後`;
 }
+
+/** 残り時間を簡潔に表示（日/時間/分） */
+export function formatTimeUntil(diffMs: number): string {
+  if (diffMs <= 0) return '開催中';
+  const days = Math.floor(diffMs / 86400000);
+  const hours = Math.floor((diffMs % 86400000) / 3600000);
+  const mins = Math.floor((diffMs % 3600000) / 60000);
+  if (days > 0) return `あと${days}日${hours > 0 ? `${hours}時間` : ''}`;
+  if (hours > 0) return `あと${hours}時間${mins}分`;
+  return `あと${mins}分`;
+}
+
+/** タイトルの【】内に指定キーワードが含まれるか */
+export function isMandatoryEvent(title: string): boolean {
+  const bracketMatch = title.match(/【([^】]+)】/g);
+  if (!bracketMatch) return false;
+  return bracketMatch.some(m => m.includes('全員') || m.includes('新入生'));
+}
+
+/** タイトルの【】内のテキストをすべて抽出して返す（なければnull） */
+export function extractBracketLabels(title: string): string[] | null {
+  const matches = title.match(/【([^】]+)】/g);
+  if (!matches || matches.length === 0) return null;
+  return matches.map(m => m.slice(1, -1));
+}

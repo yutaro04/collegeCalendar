@@ -2,10 +2,15 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { CalendarEvent } from '@/lib/types';
+import type { NotificationSettings } from './useNotificationSettings';
 
 const NOTIFIED_KEY = 'cal_notified';
 
-export function useNotifications(events: CalendarEvent[], favorites: Record<string, boolean>) {
+export function useNotifications(
+  events: CalendarEvent[],
+  favorites: Record<string, boolean>,
+  settings: NotificationSettings,
+) {
   const [granted, setGranted] = useState(false);
   const notifiedRef = useRef<Record<string, boolean>>({});
 
@@ -31,19 +36,19 @@ export function useNotifications(events: CalendarEvent[], favorites: Record<stri
     return ok;
   }, []);
 
-  // 1時間前通知チェック
+  // 設定に基づいた通知チェック
   useEffect(() => {
-    if (!granted) return;
+    if (!granted || !settings.enabled) return;
 
     const check = () => {
       const now = Date.now();
+      const windowMs = settings.minutesBefore * 60000;
       events.forEach(e => {
         if (e.isAllDay || !favorites[e.id]) return;
         const diff = new Date(e.startISO).getTime() - now;
-        if (diff > 55 * 60000 && diff < 65 * 60000 && !notifiedRef.current[e.id]) {
-          new Notification(`まもなく: ${e.title}`, {
-            body: `${e.startTime} - ${e.calendarName}`,
-          });
+        // minutesBefore の前後5分の範囲で通知
+        if (diff > 0 && diff < windowMs && diff > windowMs - 5 * 60000 && !notifiedRef.current[e.id]) {
+          new Notification(`${settings.minutesBefore}分後に ${e.title}が開催されます`);
           notifiedRef.current[e.id] = true;
           localStorage.setItem(NOTIFIED_KEY, JSON.stringify(notifiedRef.current));
         }
@@ -53,7 +58,7 @@ export function useNotifications(events: CalendarEvent[], favorites: Record<stri
     check();
     const interval = setInterval(check, 60000);
     return () => clearInterval(interval);
-  }, [granted, events, favorites]);
+  }, [granted, events, favorites, settings]);
 
   return { granted, requestPermission };
 }

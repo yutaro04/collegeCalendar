@@ -2,9 +2,12 @@
 
 @theme inline {
   --font-sans: var(--font-geist-sans);
+  --color-primary: #CB1B3B;
+  --color-primary-light: #f0d0d7;
+  --color-surface: #fafafa;
+  --color-surface-container: #f2f2f2;
 }
 
-/* Scrollbar hide utility */
 @layer utilities {
   .scrollbar-hide {
     -ms-overflow-style: none;

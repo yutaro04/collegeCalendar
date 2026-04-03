@@ -27,7 +27,15 @@ export function useEvents(): UseEventsReturn {
       const data = await res.json();
 
       if (data.success) {
-        setEvents(data.events);
+        const raw = data.events as CalendarEvent[];
+        // 同一IDの出現回数をカウントし、繰り返しイベントにフラグを付与
+        const idCount = new Map<string, number>();
+        raw.forEach(e => idCount.set(e.id, (idCount.get(e.id) ?? 0) + 1));
+        const enriched = raw.map(e => ({
+          ...e,
+          isRecurring: (idCount.get(e.id) ?? 0) > 1,
+        }));
+        setEvents(enriched);
         setLastSync(data.lastSync ?? '');
       } else {
         setError(data.error ?? 'データ取得に失敗しました');

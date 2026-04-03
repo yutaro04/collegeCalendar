@@ -19,10 +19,10 @@ export function Toast({ message, visible, onHide }: ToastProps) {
   return (
     <div
       className={`
-        fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-800 text-white
+        fixed bottom-20 left-1/2 -translate-x-1/2 bg-gray-900 text-white
         px-5 py-2.5 rounded-xl text-[13px] z-[999] whitespace-nowrap
         transition-all duration-300
-        ${visible ? 'translate-y-0 opacity-100' : 'translate-y-24 opacity-0 pointer-events-none'}
+        ${visible ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0 pointer-events-none'}
       `}
     >
       {message}
