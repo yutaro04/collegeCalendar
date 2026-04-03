@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import type { Machine, LaundryApiRow } from '@/lib/laundry';
 import { parseApiRow } from '@/lib/laundry';
 
@@ -17,8 +17,10 @@ export function useLaundry(): UseLaundryReturn {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const initialLoadDone = useRef(false);
+
   const fetchData = useCallback(async () => {
-    setLoading(true);
+    if (!initialLoadDone.current) setLoading(true);
     setError(null);
     try {
       const res = await fetch('/api/laundry');
@@ -33,6 +35,7 @@ export function useLaundry(): UseLaundryReturn {
       setError(err instanceof Error ? err.message : 'ネットワークエラー');
     } finally {
       setLoading(false);
+      initialLoadDone.current = true;
     }
   }, []);
 
