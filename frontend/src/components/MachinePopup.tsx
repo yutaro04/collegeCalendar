@@ -2,26 +2,23 @@
 
 import { useState } from 'react';
 import type { Machine } from '@/lib/laundry';
-import { getDurationMin, STATUS_LABEL } from '@/lib/laundry';
+import { getDurationMin } from '@/lib/laundry';
 
 type View = 'main' | 'comment' | 'status' | 'confirm-pickup';
 
 interface MachinePopupProps {
   machine: Machine;
   onClose: () => void;
-  onUpdate: (id: string, patch: { status?: string; finishedAt?: string; comment?: string }) => Promise<boolean>;
+  onUpdate: (id: string, patch: { status?: string; finishedAt?: string; comment?: string }) => void;
   onScheduleNotification: (id: string, label: string, finishedAt: string) => void;
 }
 
 export function MachinePopup({ machine, onClose, onUpdate, onScheduleNotification }: MachinePopupProps) {
   const [view, setView] = useState<View>(machine.status === 'finished' ? 'confirm-pickup' : 'main');
   const [comment, setComment] = useState(machine.comment ?? '');
-  const [loading, setLoading] = useState(false);
 
-  const doUpdate = async (patch: { status?: string; finishedAt?: string; comment?: string }) => {
-    setLoading(true);
-    await onUpdate(machine.id, patch);
-    setLoading(false);
+  const doUpdate = (patch: { status?: string; finishedAt?: string; comment?: string }) => {
+    onUpdate(machine.id, patch);
     onClose();
   };
 
@@ -33,9 +30,7 @@ export function MachinePopup({ machine, onClose, onUpdate, onScheduleNotificatio
     doUpdate({ status: 'active', finishedAt: formatted });
   };
 
-  const handleSaveComment = () => {
-    doUpdate({ comment });
-  };
+  const handleSaveComment = () => doUpdate({ comment });
 
   const handleStatusChange = (status: string) => {
     if (status === 'available') {
@@ -45,9 +40,7 @@ export function MachinePopup({ machine, onClose, onUpdate, onScheduleNotificatio
     }
   };
 
-  const handlePickup = () => {
-    doUpdate({ status: 'available', finishedAt: '', comment: '' });
-  };
+  const handlePickup = () => doUpdate({ status: 'available', finishedAt: '', comment: '' });
 
   return (
     <div className="fixed inset-0 z-[100] flex items-end justify-center" onClick={onClose}>
@@ -67,14 +60,8 @@ export function MachinePopup({ machine, onClose, onUpdate, onScheduleNotificatio
           </button>
         </div>
 
-        {loading && (
-          <div className="flex justify-center py-6">
-            <div className="w-6 h-6 border-2 border-gray-200 border-t-[var(--color-primary)] rounded-full animate-spin" />
-          </div>
-        )}
-
         {/* Main menu */}
-        {!loading && view === 'main' && (
+        {view === 'main' && (
           <div className="flex flex-col gap-2">
             {machine.status === 'available' && (
               <PopupButton onClick={handleStart}>
@@ -91,7 +78,7 @@ export function MachinePopup({ machine, onClose, onUpdate, onScheduleNotificatio
         )}
 
         {/* Comment editor */}
-        {!loading && view === 'comment' && (
+        {view === 'comment' && (
           <div>
             <textarea
               value={comment}
@@ -117,7 +104,7 @@ export function MachinePopup({ machine, onClose, onUpdate, onScheduleNotificatio
         )}
 
         {/* Status change */}
-        {!loading && view === 'status' && (
+        {view === 'status' && (
           <div className="flex flex-col gap-2">
             <PopupButton onClick={() => handleStatusChange('error')}>
               <span className="w-3 h-3 rounded-full bg-amber-400 inline-block mr-2" />
@@ -141,7 +128,7 @@ export function MachinePopup({ machine, onClose, onUpdate, onScheduleNotificatio
         )}
 
         {/* Confirm pickup (finished) */}
-        {!loading && view === 'confirm-pickup' && (
+        {view === 'confirm-pickup' && (
           <div className="text-center">
             <div className="text-[15px] text-gray-700 mb-4">洗濯物を取り出しましたか？</div>
             <div className="flex gap-2">
@@ -162,7 +149,7 @@ export function MachinePopup({ machine, onClose, onUpdate, onScheduleNotificatio
         )}
 
         {/* Current comment display */}
-        {!loading && machine.comment && view === 'main' && (
+        {machine.comment && view === 'main' && (
           <div className="mt-3 bg-gray-50 rounded-xl p-3 text-[12px] text-gray-500">
             {machine.comment}
           </div>
