@@ -8,7 +8,11 @@ import { MachinePopup } from './MachinePopup';
 
 type Gender = 'male' | 'female';
 
-export function LaundryRoom() {
+interface LaundryRoomProps {
+  onScheduleNotification: (id: string, label: string, finishedAt: string) => void;
+}
+
+export function LaundryRoom({ onScheduleNotification }: LaundryRoomProps) {
   const { machines, loading, error, refresh, updateMachine } = useLaundry();
   const [gender, setGender] = useState<Gender>('male');
   const [selectedMachine, setSelectedMachine] = useState<Machine | null>(null);
@@ -69,6 +73,7 @@ export function LaundryRoom() {
           machine={selectedMachine}
           onClose={() => setSelectedMachine(null)}
           onUpdate={updateMachine}
+          onScheduleNotification={onScheduleNotification}
         />
       )}
 

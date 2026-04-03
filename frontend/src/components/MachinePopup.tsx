@@ -10,9 +10,10 @@ interface MachinePopupProps {
   machine: Machine;
   onClose: () => void;
   onUpdate: (id: string, patch: { status?: string; finishedAt?: string; comment?: string }) => Promise<boolean>;
+  onScheduleNotification: (id: string, label: string, finishedAt: string) => void;
 }
 
-export function MachinePopup({ machine, onClose, onUpdate }: MachinePopupProps) {
+export function MachinePopup({ machine, onClose, onUpdate, onScheduleNotification }: MachinePopupProps) {
   const [view, setView] = useState<View>(machine.status === 'finished' ? 'confirm-pickup' : 'main');
   const [comment, setComment] = useState(machine.comment ?? '');
   const [loading, setLoading] = useState(false);
@@ -28,6 +29,7 @@ export function MachinePopup({ machine, onClose, onUpdate }: MachinePopupProps) 
     const min = getDurationMin(machine.type);
     const finishedAt = new Date(Date.now() + min * 60000);
     const formatted = `${finishedAt.getFullYear()}/${String(finishedAt.getMonth() + 1).padStart(2, '0')}/${String(finishedAt.getDate()).padStart(2, '0')} ${String(finishedAt.getHours()).padStart(2, '0')}:${String(finishedAt.getMinutes()).padStart(2, '0')}`;
+    onScheduleNotification(machine.id, machine.label, formatted);
     doUpdate({ status: 'active', finishedAt: formatted });
   };
 

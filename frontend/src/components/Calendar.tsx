@@ -17,7 +17,7 @@ export function Calendar() {
   const { events, loading, error, refresh } = useEvents();
   const { favorites, toggle, isFavorite } = useFavorites();
   const { settings: notifSettings, update: updateNotifSettings } = useNotificationSettings();
-  const { granted, requestPermission } = useNotifications(events, favorites, notifSettings);
+  const { granted, requestPermission, scheduleLaundryNotification } = useNotifications(events, favorites, notifSettings);
 
   const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>('all');
@@ -86,7 +86,7 @@ export function Calendar() {
           onRequestPermission={requestPermission}
         />
       ) : activeNav === 'laundry' ? (
-        <LaundryRoom />
+        <LaundryRoom onScheduleNotification={scheduleLaundryNotification} />
       ) : (
         <>
           <Header events={events} favorites={favorites} onRefresh={handleRefresh} refreshing={refreshing} />

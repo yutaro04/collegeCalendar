@@ -8,8 +8,12 @@ const geistSans = Geist({
 });
 
 export const metadata: Metadata = {
-  title: "College Calendar",
-  description: "カレッジ週間カレンダー",
+  title: "COLLEGE APP",
+  description: "カレッジカレンダー & ランドリー",
+  icons: {
+    icon: "/app.png",
+    apple: "/app.png",
+  },
 };
 
 export default function RootLayout({
