@@ -10,6 +10,7 @@ import { TabBar, type TabType } from './TabBar';
 import { Timeline } from './Timeline';
 import { BottomNav, type NavItem } from './BottomNav';
 import { NotificationSettings } from './NotificationSettings';
+import { LaundryRoom } from './LaundryRoom';
 import { Toast } from './Toast';
 
 export function Calendar() {
@@ -75,17 +76,17 @@ export function Calendar() {
     );
   }
 
-  const showSettings = activeNav === 'notifications';
-
   return (
     <div className="min-h-screen pb-20">
-      {showSettings ? (
+      {activeNav === 'notifications' ? (
         <NotificationSettings
           settings={notifSettings}
           onUpdate={updateNotifSettings}
           granted={granted}
           onRequestPermission={requestPermission}
         />
+      ) : activeNav === 'laundry' ? (
+        <LaundryRoom />
       ) : (
         <>
           <Header events={events} favorites={favorites} onRefresh={handleRefresh} refreshing={refreshing} />
