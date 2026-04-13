@@ -11,6 +11,7 @@ import { Timeline } from './Timeline';
 import { BottomNav, type NavItem } from './BottomNav';
 import { NotificationSettings } from './NotificationSettings';
 import { LaundryRoom } from './LaundryRoom';
+import { BathroomView } from './BathroomView';
 import { Toast } from './Toast';
 
 export function Calendar() {
@@ -87,6 +88,8 @@ export function Calendar() {
         />
       ) : activeNav === 'laundry' ? (
         <LaundryRoom onScheduleNotification={scheduleLaundryNotification} />
+      ) : activeNav === 'bathroom' ? (
+        <BathroomView />
       ) : (
         <>
           <Header events={events} favorites={favorites} onRefresh={handleRefresh} refreshing={refreshing} />
