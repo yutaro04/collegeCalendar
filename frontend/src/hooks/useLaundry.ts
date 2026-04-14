@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { Machine, MachineStatus, LaundryApiRow } from '@/lib/laundry';
-import { parseApiRow, getDurationMin } from '@/lib/laundry';
+import { parseApiRow } from '@/lib/laundry';
+import { supabase } from '@/lib/supabase';
 
 interface UseLaundryReturn {
   machines: Machine[];
@@ -22,12 +23,17 @@ export function useLaundry(): UseLaundryReturn {
     if (!initialLoadDone.current) setLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/laundry');
-      const json = await res.json();
-      if (json.success) {
-        setMachines((json.data as LaundryApiRow[]).map(parseApiRow));
-      } else {
-        setError(json.error ?? 'データ取得に失敗しました');
+      const { data, error: sbError } = await supabase.from('laundry').select('*');
+      if (sbError) {
+        setError(sbError.message);
+      } else if (data) {
+        const rows: LaundryApiRow[] = data.map((r: Record<string, string>) => ({
+          id: r.id,
+          status: r.status,
+          finishedAt: r.finishedAt ?? r.finished_at ?? '',
+          comment: r.comment ?? '',
+        }));
+        setMachines(rows.map(parseApiRow));
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'ネットワークエラー');
@@ -41,19 +47,16 @@ export function useLaundry(): UseLaundryReturn {
     id: string,
     patch: { status?: string; finishedAt?: string; comment?: string },
   ) => {
-    // 楽観的にローカルstateを即時更新
+    // 楽観的更新
     setMachines(prev => prev.map(m => {
       if (m.id !== id) return m;
-
       const newStatus = (patch.status as MachineStatus | undefined) ?? m.status;
       let remainingMin = m.remainingMin;
-
       if (newStatus === 'active' && patch.finishedAt) {
         remainingMin = Math.max(0, Math.round((new Date(patch.finishedAt).getTime() - Date.now()) / 60000));
       } else if (newStatus === 'available') {
         remainingMin = undefined;
       }
-
       return {
         ...m,
         status: newStatus,
@@ -62,15 +65,17 @@ export function useLaundry(): UseLaundryReturn {
       };
     }));
 
-    // バックグラウンドでAPI送信 → 完了後にサーバーデータで同期
-    fetch('/api/laundry', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, ...patch }),
-    })
-      .then(res => res.json())
-      .then(() => fetchData())
-      .catch(() => fetchData()); // 失敗時もサーバーから再取得して整合性を保つ
+    // Supabaseに更新
+    const updateData: Record<string, string> = {};
+    if (patch.status !== undefined) updateData.status = patch.status;
+    if (patch.finishedAt !== undefined) updateData.finishedAt = patch.finishedAt;
+    if (patch.comment !== undefined) updateData.comment = patch.comment;
+
+    supabase
+      .from('laundry')
+      .update(updateData)
+      .eq('id', id)
+      .then(() => fetchData(), () => fetchData());
   }, [fetchData]);
 
   useEffect(() => {

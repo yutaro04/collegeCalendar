@@ -9,12 +9,16 @@ import { Header } from './Header';
 import { TabBar, type TabType } from './TabBar';
 import { Timeline } from './Timeline';
 import { BottomNav, type NavItem } from './BottomNav';
-import { NotificationSettings } from './NotificationSettings';
+import { SettingsView } from './SettingsView';
 import { LaundryRoom } from './LaundryRoom';
 import { BathroomView } from './BathroomView';
+import { RecruitView } from './RecruitView';
+import { LoginScreen } from './LoginScreen';
 import { Toast } from './Toast';
+import { useAuth } from '@/hooks/useAuth';
 
 export function Calendar() {
+  const { user } = useAuth();
   const { events, loading, error, refresh } = useEvents();
   const { favorites, toggle, isFavorite } = useFavorites();
   const { settings: notifSettings, update: updateNotifSettings } = useNotificationSettings();
@@ -22,7 +26,7 @@ export function Calendar() {
 
   const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>('all');
-  const [activeNav, setActiveNav] = useState<NavItem>('home');
+  const [activeNav, setActiveNav] = useState<NavItem>('calendar');
   const [refreshing, setRefreshing] = useState(false);
   const [toast, setToast] = useState({ message: '', visible: false });
 
@@ -49,7 +53,7 @@ export function Calendar() {
 
   const handleNavSelect = useCallback((item: NavItem) => {
     setActiveNav(item);
-    if (item === 'home') setActiveTab('all');
+    if (item === 'calendar') setActiveTab('all');
   }, []);
 
   if (!mounted) return null;
@@ -79,17 +83,20 @@ export function Calendar() {
 
   return (
     <div className="min-h-screen pb-20">
-      {activeNav === 'notifications' ? (
-        <NotificationSettings
-          settings={notifSettings}
-          onUpdate={updateNotifSettings}
-          granted={granted}
+      {activeNav === 'settings' ? (
+        <SettingsView
+          notifSettings={notifSettings}
+          onUpdateNotif={updateNotifSettings}
+          notifGranted={granted}
           onRequestPermission={requestPermission}
+          onToast={showToast}
         />
       ) : activeNav === 'laundry' ? (
         <LaundryRoom onScheduleNotification={scheduleLaundryNotification} />
       ) : activeNav === 'bathroom' ? (
         <BathroomView />
+      ) : activeNav === 'recruit' ? (
+        user ? <RecruitView onToast={showToast} /> : <LoginScreen />
       ) : (
         <>
           <Header events={events} favorites={favorites} onRefresh={handleRefresh} refreshing={refreshing} />

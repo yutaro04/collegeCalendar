@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import type { BathroomRoom, BathroomApiRow, BathroomStatus } from '@/lib/bathroom';
+import type { BathroomRoom, BathroomStatus, BathroomApiRow } from '@/lib/bathroom';
 import { parseApiRow } from '@/lib/bathroom';
+import { supabase } from '@/lib/supabase';
 
 interface UseBathroomReturn {
   rooms: BathroomRoom[];
@@ -22,12 +23,11 @@ export function useBathroom(): UseBathroomReturn {
     if (!initialLoadDone.current) setLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/bathroom');
-      const json = await res.json();
-      if (json.success) {
-        setRooms((json.data as BathroomApiRow[]).map(parseApiRow));
-      } else {
-        setError(json.error ?? 'データ取得に失敗しました');
+      const { data, error: sbError } = await supabase.from('bathroom').select('*');
+      if (sbError) {
+        setError(sbError.message);
+      } else if (data) {
+        setRooms((data as BathroomApiRow[]).map(parseApiRow));
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'ネットワークエラー');
@@ -51,14 +51,15 @@ export function useBathroom(): UseBathroomReturn {
       };
     }));
 
-    fetch('/api/bathroom', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, ...patch }),
-    })
-      .then(res => res.json())
-      .then(() => fetchData())
-      .catch(() => fetchData());
+    const updateData: Record<string, string> = {};
+    if (patch.status !== undefined) updateData.status = patch.status;
+    if (patch.comment !== undefined) updateData.comment = patch.comment;
+
+    supabase
+      .from('bathroom')
+      .update(updateData)
+      .eq('id', id)
+      .then(() => fetchData(), () => fetchData());
   }, [fetchData]);
 
   useEffect(() => {
