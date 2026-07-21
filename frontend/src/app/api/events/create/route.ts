@@ -14,6 +14,16 @@ const ALLOWED_DOMAIN = 'hlab.college';
 
 const PRIVATE_COLOR = '#4285F4';
 
+/** MY EVENTタブ用: 誰がこのイベントを作成したかを記録する（失敗しても作成自体は成功扱いにする） */
+async function recordCreatedEvent(eventId: string, userId: string) {
+  try {
+    const admin = createSupabaseAdmin();
+    await admin.from('created_events').upsert({ event_id: eventId, user_id: userId });
+  } catch (err) {
+    console.error('created_events record error:', err);
+  }
+}
+
 interface CreateBody {
   calendarKey?: string;
   title?: string;
@@ -106,6 +116,7 @@ export async function POST(req: Request) {
       });
 
       const [, m, d] = dateKey.split('-');
+      await recordCreatedEvent(String(gEvent.id), userData.user.id);
       return NextResponse.json({
         success: true,
         event: {
@@ -165,6 +176,7 @@ export async function POST(req: Request) {
     if (!data.success) {
       return NextResponse.json({ success: false, error: data.error ?? 'イベント作成に失敗しました' }, { status: 502 });
     }
+    if (data.event?.id) await recordCreatedEvent(String(data.event.id), userData.user.id);
     return NextResponse.json({ success: true, event: data.event });
   } catch (err) {
     console.error('GAS create error:', err);

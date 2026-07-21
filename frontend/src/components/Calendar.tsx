@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
+import type { CalendarEvent } from '@/lib/types';
 import { useEvents } from '@/hooks/useEvents';
 import { useFavorites } from '@/hooks/useFavorites';
+import { useMyCreatedEvents } from '@/hooks/useMyCreatedEvents';
 import { useNotificationSettings } from '@/hooks/useNotificationSettings';
 import { useNotifications } from '@/hooks/useNotifications';
 import { Header } from './Header';
@@ -21,7 +23,8 @@ import { useAuth } from '@/hooks/useAuth';
 export function Calendar() {
   const { user, signInWithGoogle, authError } = useAuth();
   const { events, loading, error, refresh, addLocalEvent } = useEvents();
-  const { favorites, toggle, isFavorite } = useFavorites();
+  const { favorites, toggle, addFavorite, isFavorite } = useFavorites();
+  const { myEventIds, addId: addMyEventId } = useMyCreatedEvents(user?.id ?? null);
   const { settings: notifSettings, update: updateNotifSettings } = useNotificationSettings();
   const { granted, requestPermission, scheduleLaundryNotification } = useNotifications(events, favorites, notifSettings);
 
@@ -50,6 +53,14 @@ export function Calendar() {
     setRefreshing(false);
     showToast('同期完了');
   }, [refresh, showToast]);
+
+  const handleEventCreated = useCallback((event: CalendarEvent) => {
+    addLocalEvent(event);
+    addMyEventId(event.id);
+    addFavorite(event.id);
+  }, [addLocalEvent, addMyEventId, addFavorite]);
+
+  const isMine = useCallback((id: string) => myEventIds.has(id), [myEventIds]);
 
   const handleToggleFav = useCallback((id: string) => {
     const wasFav = isFavorite(id);
@@ -117,7 +128,7 @@ export function Calendar() {
           <Header events={events} favorites={favorites} onRefresh={handleRefresh} refreshing={refreshing} />
           <main className="max-w-180 mx-auto px-4 pt-5 md:px-6">
             <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
-            <Timeline events={events} tab={activeTab} isFavorite={isFavorite} onToggleFav={handleToggleFav} />
+            <Timeline events={events} tab={activeTab} isFavorite={isFavorite} onToggleFav={handleToggleFav} isMine={isMine} />
           </main>
 
           {/* イベント追加ボタン（FAB）: カレンダー画面のみ表示 */}
@@ -134,7 +145,7 @@ export function Calendar() {
       {showAddEvent && (
         <AddEventModal
           onClose={() => setShowAddEvent(false)}
-          onCreated={addLocalEvent}
+          onCreated={handleEventCreated}
           onToast={showToast}
         />
       )}

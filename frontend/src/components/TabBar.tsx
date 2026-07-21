@@ -1,6 +1,6 @@
 'use client';
 
-export type TabType = 'all' | 'thisWeek' | 'myEvents';
+export type TabType = 'all' | 'myCreated' | 'myEvents';
 
 interface TabBarProps {
   activeTab: TabType;
@@ -9,7 +9,7 @@ interface TabBarProps {
 
 const TABS: { key: TabType; label: string }[] = [
   { key: 'all', label: 'ALL EVENTS' },
-  { key: 'thisWeek', label: 'THIS WEEK' },
+  { key: 'myCreated', label: 'MY EVENT' },
   { key: 'myEvents', label: 'FAVORITE' },
 ];
 

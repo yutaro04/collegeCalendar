@@ -27,7 +27,16 @@ export function useFavorites() {
     });
   }, []);
 
+  const addFavorite = useCallback((id: string) => {
+    setFavorites(prev => {
+      if (prev[id]) return prev;
+      const next = { ...prev, [id]: true };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      return next;
+    });
+  }, []);
+
   const isFavorite = useCallback((id: string) => favorites[id], [favorites]);
 
-  return { favorites, toggle, isFavorite };
+  return { favorites, toggle, addFavorite, isFavorite };
 }

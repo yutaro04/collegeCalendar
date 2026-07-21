@@ -11,9 +11,10 @@ interface TimelineProps {
   tab: TabType;
   isFavorite: (id: string) => boolean;
   onToggleFav: (id: string) => void;
+  isMine: (id: string) => boolean;
 }
 
-export function Timeline({events, tab, isFavorite, onToggleFav}: TimelineProps) {
+export function Timeline({events, tab, isFavorite, onToggleFav, isMine}: TimelineProps) {
   const now = new Date();
   const nowMs = now.getTime();
   const todayKey = formatDateKey(now);
@@ -26,11 +27,8 @@ export function Timeline({events, tab, isFavorite, onToggleFav}: TimelineProps) 
 
   // タブフィルタ
   let filtered = upcoming;
-  if (tab === 'thisWeek') {
-    const weekEnd = new Date();
-    weekEnd.setDate(now.getDate() + (7 - now.getDay()));
-    const weekEndKey = formatDateKey(weekEnd);
-    filtered = upcoming.filter(e => e.dateKey >= todayKey && e.dateKey <= weekEndKey);
+  if (tab === 'myCreated') {
+    filtered = upcoming.filter(e => isMine(e.id));
   } else if (tab === 'myEvents') {
     filtered = upcoming.filter(e => isFavorite(e.id));
   }
@@ -39,7 +37,7 @@ export function Timeline({events, tab, isFavorite, onToggleFav}: TimelineProps) 
     return (
       <div className="text-center py-16 text-gray-400">
         <p className="text-sm">
-          {tab === 'myEvents' ? 'お気に入りの予定はありません' : '予定はありません'}
+          {tab === 'myEvents' ? 'お気に入りの予定はありません' : tab === 'myCreated' ? '作成した予定はありません' : '予定はありません'}
         </p>
       </div>
     );
