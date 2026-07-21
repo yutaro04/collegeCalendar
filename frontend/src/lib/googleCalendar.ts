@@ -25,6 +25,7 @@ export interface PrivateEventInput {
   description: string;
   location: string;
   roomEmail: string;
+  attendees: string[];
   isAllDay: boolean;
   dateKey: string; // yyyy-MM-dd
   startISO: string;
@@ -45,8 +46,9 @@ export async function createPrimaryCalendarEvent(accessToken: string, input: Pri
     body.end = { dateTime: input.endISO };
   }
 
-  if (input.roomEmail) {
-    body.attendees = [{ email: input.roomEmail }];
+  const guestEmails = Array.from(new Set([...input.attendees, input.roomEmail].filter(Boolean)));
+  if (guestEmails.length > 0) {
+    body.attendees = guestEmails.map(email => ({ email }));
   }
 
   const res = await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events', {

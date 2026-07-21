@@ -4,6 +4,8 @@ import { useState } from 'react';
 import type { CalendarEvent } from '@/lib/types';
 import { formatDateKey } from '@/lib/utils';
 import { useAddEvent } from '@/hooks/useAddEvent';
+import { useAuth } from '@/hooks/useAuth';
+import { InviteUserPicker } from './InviteUserPicker';
 
 interface AddEventModalProps {
   onClose: () => void;
@@ -30,6 +32,7 @@ function defaultTimes(): { date: string; start: string; end: string } {
 }
 
 export function AddEventModal({ onClose, onCreated, onToast }: AddEventModalProps) {
+  const { user } = useAuth();
   const { config, configError, submitting, createEvent } = useAddEvent();
   const def = defaultTimes();
 
@@ -42,6 +45,7 @@ export function AddEventModal({ onClose, onCreated, onToast }: AddEventModalProp
   const [roomEmail, setRoomEmail] = useState('');
   const [location, setLocation] = useState('');
   const [description, setDescription] = useState('');
+  const [attendees, setAttendees] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   const calendars = config?.calendars ?? [
@@ -66,6 +70,7 @@ export function AddEventModal({ onClose, onCreated, onToast }: AddEventModalProp
         description: description.trim(),
         location: location.trim(),
         roomEmail,
+        attendees,
         isAllDay,
         dateKey: date,
         startISO: isAllDay ? '' : toISO(date, startTime),
@@ -175,6 +180,12 @@ export function AddEventModal({ onClose, onCreated, onToast }: AddEventModalProp
           <div>
             <span className={labelCls}>説明（任意）</span>
             <textarea className={`${inputCls} resize-none h-20`} value={description} onChange={e => setDescription(e.target.value)} maxLength={1000} />
+          </div>
+
+          {/* 招待するユーザー */}
+          <div>
+            <span className={labelCls}>招待するユーザー（任意）</span>
+            <InviteUserPicker userId={user?.id ?? null} selected={attendees} onChange={setAttendees} />
           </div>
 
           {error && <div className="text-[12px] text-red-500">{error}</div>}

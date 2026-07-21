@@ -14,6 +14,15 @@ const ALLOWED_DOMAIN = 'hlab.college';
 
 const PRIVATE_COLOR = '#4285F4';
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/** 招待先メールアドレスの検証・重複除去（不正な値は無視する） */
+function sanitizeAttendees(raw: unknown): string[] {
+  if (!Array.isArray(raw)) return [];
+  const emails = raw.filter((e): e is string => typeof e === 'string' && EMAIL_RE.test(e.trim())).map(e => e.trim());
+  return Array.from(new Set(emails)).slice(0, 50);
+}
+
 /** MY EVENTタブ用: 誰がこのイベントを作成したかを記録する（失敗しても作成自体は成功扱いにする） */
 async function recordCreatedEvent(eventId: string, userId: string) {
   try {
@@ -30,6 +39,7 @@ interface CreateBody {
   description?: string;
   location?: string;
   roomEmail?: string;
+  attendees?: string[];
   isAllDay?: boolean;
   dateKey?: string;
   startISO?: string;
@@ -109,6 +119,7 @@ export async function POST(req: Request) {
         description,
         location,
         roomEmail: (body.roomEmail ?? '').trim(),
+        attendees: sanitizeAttendees(body.attendees),
         isAllDay,
         dateKey,
         startISO,
@@ -163,6 +174,7 @@ export async function POST(req: Request) {
         description: (body.description ?? '').trim(),
         location: (body.location ?? '').trim(),
         roomEmail: (body.roomEmail ?? '').trim(),
+        attendees: sanitizeAttendees(body.attendees),
         isAllDay: !!body.isAllDay,
         dateKey: body.dateKey ?? '',
         startISO: body.startISO ?? '',

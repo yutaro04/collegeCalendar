@@ -23,6 +23,7 @@ export interface CreateEventInput {
   description: string;
   location: string;
   roomEmail: string;
+  attendees: string[];
   isAllDay: boolean;
   dateKey: string; // yyyy-MM-dd
   startISO: string;
