@@ -3,7 +3,7 @@
 import { useAuth } from '@/hooks/useAuth';
 
 export function LoginScreen() {
-  const { signInWithGoogle } = useAuth();
+  const { signInWithGoogle, authError } = useAuth();
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-8 gap-6">
@@ -11,6 +11,9 @@ export function LoginScreen() {
       <div className="text-sm text-gray-500 text-center">
         ゆる募やプロフィール機能を使うには<br />ログインが必要です
       </div>
+      {authError && (
+        <div className="text-[12px] text-red-500 bg-red-50 rounded-lg px-3 py-2">{authError}</div>
+      )}
       <button
         onClick={signInWithGoogle}
         className="flex items-center gap-3 px-6 py-3 bg-white border border-gray-200 rounded-full shadow-sm cursor-pointer hover:bg-gray-50 transition-colors"

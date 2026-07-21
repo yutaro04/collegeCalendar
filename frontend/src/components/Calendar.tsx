@@ -14,12 +14,13 @@ import { LaundryRoom } from './LaundryRoom';
 import { BathroomView } from './BathroomView';
 import { RecruitView } from './RecruitView';
 import { LoginScreen } from './LoginScreen';
+import { AddEventModal } from './AddEventModal';
 import { Toast } from './Toast';
 import { useAuth } from '@/hooks/useAuth';
 
 export function Calendar() {
-  const { user } = useAuth();
-  const { events, loading, error, refresh } = useEvents();
+  const { user, signInWithGoogle, authError } = useAuth();
+  const { events, loading, error, refresh, addLocalEvent } = useEvents();
   const { favorites, toggle, isFavorite } = useFavorites();
   const { settings: notifSettings, update: updateNotifSettings } = useNotificationSettings();
   const { granted, requestPermission, scheduleLaundryNotification } = useNotifications(events, favorites, notifSettings);
@@ -28,11 +29,16 @@ export function Calendar() {
   const [activeTab, setActiveTab] = useState<TabType>('all');
   const [activeNav, setActiveNav] = useState<NavItem>('calendar');
   const [refreshing, setRefreshing] = useState(false);
+  const [showAddEvent, setShowAddEvent] = useState(false);
   const [toast, setToast] = useState({ message: '', visible: false });
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (authError) setToast({ message: authError, visible: true });
+  }, [authError]);
 
   const showToast = useCallback((message: string) => {
     setToast({ message, visible: true });
@@ -55,6 +61,15 @@ export function Calendar() {
     setActiveNav(item);
     if (item === 'calendar') setActiveTab('all');
   }, []);
+
+  const handleAddEventClick = useCallback(() => {
+    if (!user) {
+      showToast('ログインが必要です');
+      signInWithGoogle();
+      return;
+    }
+    setShowAddEvent(true);
+  }, [user, signInWithGoogle, showToast]);
 
   if (!mounted) return null;
 
@@ -104,10 +119,28 @@ export function Calendar() {
             <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
             <Timeline events={events} tab={activeTab} isFavorite={isFavorite} onToggleFav={handleToggleFav} />
           </main>
+
+          {/* イベント追加ボタン（FAB）: カレンダー画面のみ表示 */}
+          <button
+            onClick={handleAddEventClick}
+            aria-label="イベントを追加"
+            className="fixed bottom-24 right-4 md:right-[calc(50%-22rem)] z-40 w-14 h-14 rounded-full bg-[var(--color-primary)] text-white text-3xl leading-none flex items-center justify-center border-none cursor-pointer shadow-[0_4px_12px_rgba(203,27,59,0.4)] active:scale-95 transition-transform"
+          >
+            ＋
+          </button>
         </>
       )}
 
-      <BottomNav active={activeNav} onSelect={handleNavSelect} notificationGranted={notifSettings.enabled} />
+      {showAddEvent && (
+        <AddEventModal
+          onClose={() => setShowAddEvent(false)}
+          onCreated={addLocalEvent}
+          onToast={showToast}
+        />
+      )}
+
+      {/* 通知機能を非表示中のため、Settingsアイコンの通知インジケーターも無効化（復活時は notifSettings.enabled に戻す） */}
+      <BottomNav active={activeNav} onSelect={handleNavSelect} notificationGranted={false} />
       <Toast message={toast.message} visible={toast.visible} onHide={() => setToast(t => ({ ...t, visible: false }))} />
     </div>
   );

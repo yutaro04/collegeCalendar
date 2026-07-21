@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import type { CalendarEvent } from '@/lib/types';
 
 interface UseEventsReturn {
@@ -9,10 +9,13 @@ interface UseEventsReturn {
   loading: boolean;
   error: string | null;
   refresh: () => Promise<void>;
+  addLocalEvent: (event: CalendarEvent) => void;
 }
 
 export function useEvents(): UseEventsReturn {
-  const [events, setEvents] = useState<CalendarEvent[]>([]);
+  const [csvEvents, setCsvEvents] = useState<CalendarEvent[]>([]);
+  // 投稿直後にCSV(EventCache)へ反映されるまでの間、楽観的に表示するイベント
+  const [localAdded, setLocalAdded] = useState<CalendarEvent[]>([]);
   const [lastSync, setLastSync] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -27,15 +30,7 @@ export function useEvents(): UseEventsReturn {
       const data = await res.json();
 
       if (data.success) {
-        const raw = data.events as CalendarEvent[];
-        // 同一IDの出現回数をカウントし、繰り返しイベントにフラグを付与
-        const idCount = new Map<string, number>();
-        raw.forEach(e => idCount.set(e.id, (idCount.get(e.id) ?? 0) + 1));
-        const enriched = raw.map(e => ({
-          ...e,
-          isRecurring: (idCount.get(e.id) ?? 0) > 1,
-        }));
-        setEvents(enriched);
+        setCsvEvents(data.events as CalendarEvent[]);
         setLastSync(data.lastSync ?? '');
       } else {
         setError(data.error ?? 'データ取得に失敗しました');
@@ -51,5 +46,23 @@ export function useEvents(): UseEventsReturn {
     fetchEvents();
   }, [fetchEvents]);
 
-  return { events, lastSync, loading, error, refresh: fetchEvents };
+  const addLocalEvent = useCallback((event: CalendarEvent) => {
+    setLocalAdded(prev => (prev.some(e => e.id === event.id) ? prev : [...prev, event]));
+  }, []);
+
+  // CSVイベント + まだCSVに載っていないローカル追加分をマージし、繰り返しフラグを付与
+  const events = useMemo(() => {
+    const csvIds = new Set(csvEvents.map(e => e.id));
+    const pendingLocal = localAdded.filter(e => !csvIds.has(e.id));
+    const merged = [...pendingLocal, ...csvEvents];
+
+    const idCount = new Map<string, number>();
+    merged.forEach(e => idCount.set(e.id, (idCount.get(e.id) ?? 0) + 1));
+    return merged.map(e => ({
+      ...e,
+      isRecurring: (idCount.get(e.id) ?? 0) > 1,
+    }));
+  }, [csvEvents, localAdded]);
+
+  return { events, lastSync, loading, error, refresh: fetchEvents, addLocalEvent };
 }

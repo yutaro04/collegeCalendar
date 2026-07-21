@@ -15,12 +15,14 @@ export function BottomNav({ active, onSelect, notificationGranted }: BottomNavPr
         <NavButton label="Calendar" active={active === 'calendar'} onClick={() => onSelect('calendar')}>
           <CalendarIcon />
         </NavButton>
+        {/* リリース時非表示（未完成のため）: 復活させる場合はコメントを外す
         <NavButton label="Laundry" active={active === 'laundry'} onClick={() => onSelect('laundry')}>
           <LaundryIcon />
         </NavButton>
         <NavButton label="Bathroom" active={active === 'bathroom'} onClick={() => onSelect('bathroom')}>
           <BathroomIcon />
         </NavButton>
+        */}
         <NavButton label="ゆる募" active={active === 'recruit'} onClick={() => onSelect('recruit')}>
           <RecruitIcon />
         </NavButton>

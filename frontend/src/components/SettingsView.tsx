@@ -21,6 +21,7 @@ export function SettingsView({
 
   return (
     <div className="pb-4">
+      {/* リリース時非表示（通知機能が未完成のため）: 復活させる場合はコメントを外す
       <NotificationSettings
         settings={notifSettings}
         onUpdate={onUpdateNotif}
@@ -28,6 +29,7 @@ export function SettingsView({
         onRequestPermission={onRequestPermission}
       />
       <div className="h-4" />
+      */}
       {user ? <ProfileView onToast={onToast} /> : <LoginScreen />}
     </div>
   );

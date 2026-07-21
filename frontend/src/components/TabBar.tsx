@@ -10,7 +10,7 @@ interface TabBarProps {
 const TABS: { key: TabType; label: string }[] = [
   { key: 'all', label: 'ALL EVENTS' },
   { key: 'thisWeek', label: 'THIS WEEK' },
-  { key: 'myEvents', label: 'MY EVENTS' },
+  { key: 'myEvents', label: 'FAVORITE' },
 ];
 
 export function TabBar({ activeTab, onTabChange }: TabBarProps) {
