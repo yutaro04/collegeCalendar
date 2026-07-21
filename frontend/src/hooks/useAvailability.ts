@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from './useAuth';
 
 export interface AvailabilityEntry {
+  id: string;
   user_id: string;
   display_name: string;
   message: string;
@@ -21,6 +22,7 @@ export interface AvailabilityInvite {
 }
 
 interface AvailabilityRow {
+  id: string;
   user_id: string;
   message: string;
   expires_at: string;
@@ -73,7 +75,7 @@ export function useAvailability(opts: UseAvailabilityOptions = {}) {
     const { data, error: err } = await supabase
       .from('availability')
       .select(`
-        user_id, message, expires_at, created_at,
+        id, user_id, message, expires_at, created_at,
         profiles!availability_user_id_fkey ( display_name )
       `)
       .gt('expires_at', nowIso)
@@ -85,6 +87,7 @@ export function useAvailability(opts: UseAvailabilityOptions = {}) {
     }
     const rows = (data ?? []) as unknown as AvailabilityRow[];
     const parsed: AvailabilityEntry[] = rows.map(r => ({
+      id: r.id,
       user_id: r.user_id,
       display_name: r.profiles?.display_name ?? '名無し',
       message: r.message,
@@ -206,15 +209,13 @@ export function useAvailability(opts: UseAvailabilityOptions = {}) {
 
   const postAvailability = useCallback(async (message: string, expiresAt: string) => {
     if (!user) return;
-    const { error: err } = await supabase
+    // 既存の投稿を削除してから新規作成する（cascadeで紐づく誘いも一緒に消える）
+    const { error: delErr } = await supabase.from('availability').delete().eq('user_id', user.id);
+    if (delErr) throw delErr;
+    const { error: insErr } = await supabase
       .from('availability')
-      .upsert({
-        user_id: user.id,
-        message: message.trim(),
-        expires_at: expiresAt,
-        created_at: new Date().toISOString(),
-      }, { onConflict: 'user_id' });
-    if (err) throw err;
+      .insert({ user_id: user.id, message: message.trim(), expires_at: expiresAt });
+    if (insErr) throw insErr;
     await fetchEntries();
   }, [user, fetchEntries]);
 
@@ -228,12 +229,13 @@ export function useAvailability(opts: UseAvailabilityOptions = {}) {
     await fetchEntries();
   }, [user, fetchEntries]);
 
-  const invite = useCallback(async (targetUserId: string, message: string) => {
+  const invite = useCallback(async (target: Pick<AvailabilityEntry, 'id' | 'user_id'>, message: string) => {
     if (!user) return;
     const { error: err } = await supabase
       .from('availability_invites')
       .insert({
-        availability_user_id: targetUserId,
+        availability_id: target.id,
+        availability_user_id: target.user_id,
         inviter_id: user.id,
         message: message.trim(),
       });

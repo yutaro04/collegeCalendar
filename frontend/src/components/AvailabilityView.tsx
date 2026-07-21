@@ -146,7 +146,7 @@ export function AvailabilityView({ onToast }: Props) {
           onClose={() => setInviteTarget(null)}
           onSubmit={async (message) => {
             try {
-              await invite(inviteTarget.user_id, message);
+              await invite(inviteTarget, message);
               setInviteTarget(null);
               onToast('誘いを送りました');
             } catch {

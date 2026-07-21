@@ -1,6 +1,6 @@
 'use client';
 
-export type NavItem = 'calendar' | 'laundry' | 'bathroom' | 'recruit' | 'info' | 'settings';
+export type NavItem = 'calendar' | 'laundry' | 'bathroom' | 'hima' | 'info' | 'settings';
 
 interface BottomNavProps {
   active: NavItem;
@@ -23,8 +23,8 @@ export function BottomNav({ active, onSelect, notificationGranted }: BottomNavPr
           <BathroomIcon />
         </NavButton>
         */}
-        <NavButton label="ゆる募" active={active === 'recruit'} onClick={() => onSelect('recruit')}>
-          <RecruitIcon />
+        <NavButton label="ひま" active={active === 'hima'} onClick={() => onSelect('hima')}>
+          <HimaIcon />
         </NavButton>
         <NavButton label="各種情報" active={active === 'info'} onClick={() => onSelect('info')}>
           <InfoIcon />
@@ -83,7 +83,7 @@ function BathroomIcon() {
   );
 }
 
-function RecruitIcon() {
+function HimaIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
       <path d="M3 10a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-9l-4 3v-3H5a2 2 0 0 1-2-2z" />

@@ -14,7 +14,7 @@ import { BottomNav, type NavItem } from './BottomNav';
 import { SettingsView } from './SettingsView';
 import { LaundryRoom } from './LaundryRoom';
 import { BathroomView } from './BathroomView';
-import { RecruitView } from './RecruitView';
+import { HimaView } from './HimaView';
 import { InfoView } from './InfoView';
 import { LoginScreen } from './LoginScreen';
 import { AddEventModal } from './AddEventModal';
@@ -122,8 +122,8 @@ export function Calendar() {
         <LaundryRoom onScheduleNotification={scheduleLaundryNotification} />
       ) : activeNav === 'bathroom' ? (
         <BathroomView />
-      ) : activeNav === 'recruit' ? (
-        user ? <RecruitView onToast={showToast} /> : <LoginScreen />
+      ) : activeNav === 'hima' ? (
+        user ? <HimaView onToast={showToast} /> : <LoginScreen />
       ) : activeNav === 'info' ? (
         <InfoView />
       ) : (
