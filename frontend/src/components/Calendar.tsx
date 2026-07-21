@@ -15,6 +15,7 @@ import { SettingsView } from './SettingsView';
 import { LaundryRoom } from './LaundryRoom';
 import { BathroomView } from './BathroomView';
 import { RecruitView } from './RecruitView';
+import { InfoView } from './InfoView';
 import { LoginScreen } from './LoginScreen';
 import { AddEventModal } from './AddEventModal';
 import { Toast } from './Toast';
@@ -123,6 +124,8 @@ export function Calendar() {
         <BathroomView />
       ) : activeNav === 'recruit' ? (
         user ? <RecruitView onToast={showToast} /> : <LoginScreen />
+      ) : activeNav === 'info' ? (
+        <InfoView />
       ) : (
         <>
           <Header events={events} favorites={favorites} onRefresh={handleRefresh} refreshing={refreshing} />

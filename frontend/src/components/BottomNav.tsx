@@ -1,6 +1,6 @@
 'use client';
 
-export type NavItem = 'calendar' | 'laundry' | 'bathroom' | 'recruit' | 'settings';
+export type NavItem = 'calendar' | 'laundry' | 'bathroom' | 'recruit' | 'info' | 'settings';
 
 interface BottomNavProps {
   active: NavItem;
@@ -25,6 +25,9 @@ export function BottomNav({ active, onSelect, notificationGranted }: BottomNavPr
         */}
         <NavButton label="ゆる募" active={active === 'recruit'} onClick={() => onSelect('recruit')}>
           <RecruitIcon />
+        </NavButton>
+        <NavButton label="各種情報" active={active === 'info'} onClick={() => onSelect('info')}>
+          <InfoIcon />
         </NavButton>
         <NavButton label="Settings" active={active === 'settings'} onClick={() => onSelect('settings')}>
           <SettingsIcon hasIndicator={notificationGranted} />
@@ -85,6 +88,16 @@ function RecruitIcon() {
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
       <path d="M3 10a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-9l-4 3v-3H5a2 2 0 0 1-2-2z" />
       <path d="M8 12h.01M12 12h.01M16 12h.01" />
+    </svg>
+  );
+}
+
+function InfoIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10" />
+      <path d="M12 16v-4" />
+      <circle cx="12" cy="8" r="0.5" fill="currentColor" />
     </svg>
   );
 }
